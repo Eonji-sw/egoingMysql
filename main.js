@@ -5,6 +5,14 @@ var qs = require('querystring');
 var template = require('./lib/template.js');
 var path = require('path');
 var sanitizeHtml = require('sanitize-html');
+var mysql = require('mysql');
+var db = mysql.createConnection({ // mysql 접속, 전달하는 인자가 객체
+  host:'localhost',
+  user:'root',
+  password:'e0j6k2o5',
+  database:'opentutorials'
+});
+db.connect(); // 실제 접속
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
@@ -12,10 +20,10 @@ var app = http.createServer(function(request,response){
     var pathname = url.parse(_url, true).pathname;
     if(pathname === '/'){
       if(queryData.id === undefined){
-        fs.readdir('./data', function(error, filelist){
+        db.query(`SELECT * FROM topic`, function(eroor, topics) {
           var title = 'Welcome';
           var description = 'Hello, Node.js';
-          var list = template.list(filelist);
+          var list = template.list(topics);
           var html = template.HTML(title, list,
             `<h2>${title}</h2>${description}`,
             `<a href="/create">create</a>`
@@ -23,6 +31,7 @@ var app = http.createServer(function(request,response){
           response.writeHead(200);
           response.end(html);
         });
+
       } else {
         fs.readdir('./data', function(error, filelist){
           var filteredId = path.parse(queryData.id).base;
